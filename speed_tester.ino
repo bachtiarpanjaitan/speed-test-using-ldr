@@ -8,6 +8,8 @@
 
 #define sensor_a A10
 #define sensor_b A11
+#define buzzer 22
+#define led 24
 
 int lcd_key     = 0;
 int adc_key_in  = 0;
@@ -19,12 +21,15 @@ float range = 10; //satuan meter;
 float start_timer,stop_timer, speed_time, speed_jam;
 float range_km = range / 1000;
 bool action_flag = false;
+int batas_kecepatan = 60;
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 void setup() {
   // put your setup code here, to run once:
   pinMode(sensor_a, INPUT);
   pinMode(sensor_b, INPUT);
+  pinMode(buzzer, OUTPUT);
+  pinMode(led, OUTPUT);
   Serial.begin(9600);
   lcd.begin(16, 2);           
   lcdprint(0,0,"  SPEED TESTER  ");
@@ -33,7 +38,9 @@ void loop() {
   // put your main code here, to run repeatedly:
   nilai_a = analogRead(sensor_a);
   nilai_b = analogRead(sensor_b);
-
+  Serial.println(nilai_a);
+  Serial.println(nilai_b);
+  Serial.println("--------------------------");
   if(nilai_a > light_limit && nilai_b < light_limit && action_flag == false){
     lcd.clear();
     deteksi_forward();
@@ -63,6 +70,9 @@ void deteksi_forward()
   String txt2 = (String) stop_timer;
   txt2 += " ms";
   lcdprint(0,1,txt2);
+  if(speed_time > batas_kecepatan){
+    alarm();
+  }
   delay(suffle_delay);
   reset();
 }
@@ -86,6 +96,9 @@ void deteksi_reverse()
   String txt2 = (String) stop_timer;
   txt2 += " ms";
   lcdprint(0,1,txt2);
+  if(speed_time > batas_kecepatan){
+    alarm();
+  }
   delay(suffle_delay);
   reset();
 }
@@ -118,3 +131,12 @@ void lcdprint(int row, int col, String data){
   lcd.setCursor(row,col);
   lcd.print(data);
 }
+
+void alarm(){
+  digitalWrite(buzzer, HIGH);
+  digitalWrite(led, HIGH);
+  delay(1000);
+  digitalWrite(buzzer, LOW);
+  digitalWrite(led, LOW);
+}
+
